@@ -24,9 +24,14 @@ class SeqGraph:
 
     def __init__(self, aaSeq):
         self.aaSeq = aaSeq
-        self.codons = [SeqGraph.revCodonTable[aa] for aa in aaSeq]
+        if self.aaSeq[0] != 'M':
+            self.aaSeq = 'M' + self.aaSeq
+
+        self.codons = [SeqGraph.revCodonTable[aa] for aa in self.aaSeq]
         self.nodes = [[GraphNode(codon) for codon in codonSet] for codonSet in self.codons]
+        self.firstNode = self.nodes[0][0]
         self.setNodeParents()
+        self.setNodeChildren()
 
     def __str__(self):
         """Prints each layer as a row of GraphNode objects"""
@@ -38,7 +43,7 @@ class SeqGraph:
     def setNodeParents(self):
         """Iterates through every codonnode and sets their parents (the nodes that point to them)"""
         for i in range(1, len(self.nodes)):
-            prevLayerNodes = {node: 0 for node in self.nodes[i-1]}
+            prevLayerNodes = {node: False for node in self.nodes[i-1]}
             for node in self.nodes[i]:
                 node.parentsVisited = prevLayerNodes
 
@@ -49,13 +54,31 @@ class SeqGraph:
             for node in self.nodes[i]:  # go through every node in current layer
                 node.nextCodons = nextLayerNodes
 
-    def validateNodes(self, inSeq):
+    def validateNodes(self, inSeq: str, inNode=None, pathLen=0):
         """Passes an input sequence and validates each GraphNode's nextCodons list. An impossible
         to code for codon in a nextCodons list will get removed from said list. Any node no longer
         pointing to any nodes will be deleted and removed from all its former children's parentsVisited
         dictionary."""
-        # TODO: implement dfs recursive algo to visit each node & validate
-        # each step 
+        if not inNode:
+            inNode = self.nodes[0][0]
+        for nextNode in inNode.nextCodons:  # iterate over each child node
+            nextSeq = nextNode.navigateSeq(inSeq)  # generate its return sequence
+
+            print('codon:', inNode.codon, 'nextSeq:', nextSeq)
+            if not nextSeq and pathLen != len(self.nodes):  # nucleotide seq has ran out, not end of graph
+                inNode.nextCodons.remove(nextNode)  # remove nextNode as inNode's child
+                nextNode.parentsVisited.pop(inNode)  # remove inNode as nextNode's parent
+                print()
+                continue
+
+            nextNode.parentsVisited[inNode] = True
+
+            self.validateNodes(inSeq=nextSeq,
+                               inNode=nextNode,
+                               pathLen=pathLen+1)
+            
+            
+
 
 
 class GraphNode:
@@ -68,12 +91,24 @@ class GraphNode:
         return f'GraphNode({self.codon})'
     
     def navigateSeq(self, inSeq: str) -> str:
+        """Returns the sequence after all characters for """
         for base in self.codon:
-            inSeq = inSeq[inSeq.find(base) + 1:]
+            try:
+                inSeq = inSeq[inSeq.index(base) + 1:]
+            except ValueError:
+                return ''
         return inSeq
 
 
 if __name__ == '__main__':
-    aaSeq = 'LLLLLLLL'
+    aaSeq = 'MCGK'
     seq = SeqGraph(aaSeq=aaSeq)
+    print()
     print(seq)
+    for layer in seq.nodes:
+        for node in layer:
+            print(node, node.parentsVisited)
+
+    seq.validateNodes('AUGUGUGUGUGUGUCGGAGGAGGA')
+
+
