@@ -43,7 +43,7 @@ class SeqGraph:
     def setNodeParents(self):
         """Iterates through every codonnode and sets their parents (the nodes that point to them)"""
         for i in range(1, len(self.nodes)):
-            prevLayerNodes = {node: False for node in self.nodes[i-1]}
+            prevLayerNodes = {node: 0 for node in self.nodes[i-1]}
             for node in self.nodes[i]:
                 node.parentsVisited = prevLayerNodes
 
@@ -58,20 +58,22 @@ class SeqGraph:
         """Passes an input sequence and validates each GraphNode's nextCodons list. An impossible
         to code for codon in a nextCodons list will get removed from said list. Any node no longer
         pointing to any nodes will be deleted and removed from all its former children's parentsVisited
-        dictionary."""
+        dictionary.""" 
+        iter = 0
         if not inNode:
             inNode = self.nodes[0][0]
         for nextNode in inNode.nextCodons:  # iterate over each child node
+            iter += 1  # debug var
             nextSeq = nextNode.navigateSeq(inSeq)  # generate its return sequence
 
-            print('codon:', inNode.codon, 'nextSeq:', nextSeq)
             if not nextSeq and pathLen != len(self.nodes):  # nucleotide seq has ran out, not end of graph
                 inNode.nextCodons.remove(nextNode)  # remove nextNode as inNode's child
-                nextNode.parentsVisited.pop(inNode)  # remove inNode as nextNode's parent
-                print()
-                continue
 
-            nextNode.parentsVisited[inNode] = True
+                print(nextNode.codon, nextNode.parentsVisited, inNode, iter)
+                nextNode.parentsVisited.pop(inNode)  # remove inNode as nextNode's parent
+                continue
+            
+            nextNode.parentsVisited[inNode] = 1
 
             self.validateNodes(inSeq=nextSeq,
                                inNode=nextNode,
@@ -105,10 +107,10 @@ if __name__ == '__main__':
     seq = SeqGraph(aaSeq=aaSeq)
     print()
     print(seq)
+
     for layer in seq.nodes:
         for node in layer:
-            print(node, node.parentsVisited)
-
+            print(node, ':', node.parentsVisited)
     seq.validateNodes('AUGUGUGUGUGUGUCGGAGGAGGA')
 
 
