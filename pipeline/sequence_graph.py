@@ -68,7 +68,7 @@ class SeqGraph:
                 continue
 
             if len(nextSeq) < 3 and pathLen < len(self.nodes):  # nucleotide seq has ran out, not end of graph
-                # print(f'{inNode} -X-> {nextNode}, {pathLen}, {nextNode.nextCodons}')
+                # print(f'{inNode} -X-> {nextNode}, {pathLen}, {nextNode.nextNodes}')
                 inNode.nextNodes[inNode.nextNodes.index(nextNode)] = None  # remove nextNode as inNode's child
                 
             elif pathLen < len(self.nodes):
@@ -95,7 +95,6 @@ class SeqGraph:
         return combos
 
 
-
 class GraphNode:
     def __init__(self, codon):
         self.codon = codon
@@ -119,18 +118,20 @@ class GraphNode:
 
 
 if __name__ == '__main__':
-    with open('c:/Users/Akash/Desktop/Python/ProteinCodingRegionID/pipeline/seq.txt', 'r') as f:
+    with open('pipeline/seq.txt', 'r') as f:
         rnaSeq = f.read()
-        print(len(rnaSeq))
+        print(rnaSeq)
 
+    aaSeq = 'MVHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH'
+    
+    aaSeq = "MVHL"
 
-    aaSeq = 'MKWLLLLGLVALSECIMYKVPLIRKKSLRRTLSERGLLKDFLKKHNLNPARKYFPQWEAPTLVDEQPLENYLDMEYFGTIGIGTPAQDFTVVFDTGSSNLWVPSVYCSSLACTNHNRFNPEDSSTYQSTSETVSITYGTGSMTGILGYDTVQVGGISDTNQIFGLSETEPGSFLYYAPFDGILGLAYPSISSSGATPVFDNIWNQGLVSQDLFSVYLSADDQSGSVVIFGGIDSSYYTGSLNWVPVTVEGYWQITVDSITMNGEAIACAEGCQAIVDTGTSLLTGPTSPIANIQSDIGASENSDGDMVVSCSAISSLPDIVFTINGVQYPVPPSAYILQSEGSCISGFQGMNLPTESGELWILGDVFIRQYFTVFDRANNQVGLAPVA'
     seq = SeqGraph(aaSeq=aaSeq)
-    print()
-    print(seq)
+    print(True)
 
     seq.validateNodes(rnaSeq)
     seq.clearUnvisitedNodes()
 
-    print(seq)
     print(seq.getNumCombinations())
+
+    print('POST VALIDATION:\n', seq)
